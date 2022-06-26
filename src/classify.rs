@@ -2,7 +2,7 @@ use serde::Deserialize;
 use anyhow::Result;
 use serde_xml_rs::from_str;
 use log::info;
-use reqwest::ClientBuilder;
+use reqwest::{Client, ClientBuilder};
 
 #[derive(Debug, Deserialize, PartialEq, Default)]
 struct Input {
@@ -47,29 +47,38 @@ struct Classify {
     works: Option<Works>,
 }
 
-pub fn lookup(isbn : String) -> Result<Option<Works>> {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?;
-    Ok(rt.block_on(do_lookup(isbn))?)
+pub struct OclcClient {
+    client : Client,
 }
 
-async fn do_lookup(isbn : String) -> Result<Option<Works>> {
-    info!("building client");
+impl OclcClient {
+    pub fn new() -> Result<Self> {
+        info!("building client");
+        let client = ClientBuilder::new().build()?;
+        info!("built client");
+        Ok(OclcClient {
+            client,
+        })
+    }
 
-    let client = ClientBuilder::new().build()?;
-    info!("built client");
+    pub fn new_with_client(client : Client) -> Self {
+        OclcClient {
+            client,
+        }
+    }
 
-    let uri = format!("http://classify.oclc.org/classify2/Classify?isbn={}&summary=true", isbn);
-    info!("looking up {}", uri);
-    let response = client.get(uri).send().await?.text().await?;
-    info!("got: {}", response);
-    let classify : Classify = from_str(&response.to_string())?;
-    info!("got classify: {:?}", classify);
-    if classify.response.code == 101 {
-        Ok(None)
-    } else {
-        Ok(classify.works)
+    pub async fn lookup(&self, isbn : String) -> Result<Option<Works>> {
+        let uri = format!("http://classify.oclc.org/classify2/Classify?isbn={}&summary=true", isbn);
+        info!("looking up {}", uri);
+        let response = self.client.get(uri).send().await?.text().await?;
+        info!("got: {}", response);
+        let classify : Classify = from_str(&response.to_string())?;
+        info!("got classify: {:?}", classify);
+        if classify.response.code == 101 {
+            Ok(None)
+        } else {
+            Ok(classify.works)
+        }
     }
 }
 
@@ -141,15 +150,18 @@ mod tests {
         });
     }
 
-    #[test]
-    fn not_found() {
-        let result = lookup("foo".to_string()).unwrap();
+    #[tokio::test]
+    async fn not_found() -> Result<()> {
+        let client = OclcClient::new()?;
+        let result = client.lookup("foo".to_string()).await?;
         assert_eq!(result, None);
+        Ok(())
     }
 
-    #[test]
-    fn found() {
-        let result = lookup("0679442723".to_string()).unwrap();
+    #[tokio::test]
+    async fn found() -> Result<()> {
+        let client = OclcClient::new()?;
+        let result = client.lookup("0679442723".to_string()).await?;
         assert_eq!(result.is_some(), true);
         let mut works = result.unwrap().works;
         works.sort();
@@ -183,5 +195,6 @@ mod tests {
         ];
         expected.sort();
         assert_eq!(works, expected);
+        Ok(())
     }
 }
