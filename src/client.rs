@@ -28,7 +28,7 @@ impl OclcClient {
         info!("looking up {}", uri);
         let response = self.client.get(uri).send().await?.text().await?;
         info!("got: {}", response);
-        let classify: Classify = from_str(&response.to_string())?;
+        let classify: Classify = from_str(&response)?;
         info!("got classify: {:?}", classify);
         classify.into()
     }

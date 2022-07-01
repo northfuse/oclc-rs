@@ -5,7 +5,7 @@ pub type Result<A> = std::result::Result<A, ClassifyError>;
 
 #[derive(Debug, PartialEq)]
 pub enum ClassifyResult {
-    SingleWorkSummary(SingleWorkSummary),
+    SingleWorkSummary(Box<SingleWorkSummary>),
     //SingleWorkDetail(SingleWorkDetail),
     MultiWork(MultiWork),
 }
@@ -51,10 +51,8 @@ pub struct MultiWork {
 }
 
 fn push_if_some<A>(c: &mut Vec<A>, opts: Vec<Option<A>>) {
-    for opt in opts {
-        if opt.is_some() {
-            c.push(opt.unwrap())
-        }
+    for opt in opts.into_iter().flatten() {
+        c.push(opt)
     }
 }
 
@@ -113,7 +111,9 @@ impl From<Classify> for Result<Option<ClassifyResult>> {
             100 => Err(ClassifyError::NoInput),
             101 => Err(ClassifyError::InvalidInput),
             102 => Ok(None),
-            0 => Ok(Some(ClassifyResult::SingleWorkSummary(classify.into()))),
+            0 => Ok(Some(ClassifyResult::SingleWorkSummary(Box::new(
+                classify.into(),
+            )))),
             4 => Ok(Some(ClassifyResult::MultiWork(classify.into()))),
             _ => Err(ClassifyError::UnexpectedResponseCode),
         }
