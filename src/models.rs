@@ -20,13 +20,13 @@ pub struct Work {
     pub editions: String,
     pub format: String,
     pub holdings: String,
-    pub hyr: String,
+    pub hyr: Option<String>,
     pub itemtype: String,
-    pub lyr: String,
+    pub lyr: Option<String>,
     pub owi:String,
-    pub schemes: String,
+    pub schemes: Option<String>,
     pub title:String,
-    pub wi:String,
+    pub wi:Option<String>,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Default)]
@@ -100,6 +100,7 @@ mod tests {
 <classify xmlns="http://classify.oclc.org">
   <response code="0"/>
   <!--Classify is a product of OCLC Online Computer Library Center: http://classify.oclc.org-->
+  <work author="foo" editions="28" eholdings="197" format="Book" holdings="2183" itemtype="itemtype-book" owi="47289247" title="FooBar">value</work>
   <orderBy>thold desc</orderBy>
   <input type="isbn">bar</input>
   <recommendations>
@@ -124,6 +125,19 @@ mod tests {
                 input_type: "isbn".to_string(),
                 value: "bar".to_string(),
             },
+            work: Some(Work {
+                author: "foo".to_string(),
+                editions: "28".to_string(),
+                format: "Book".to_string(),
+                holdings: "2183".to_string(),
+                hyr: None,
+                itemtype: "itemtype-book".to_string(),
+                lyr: None,
+                owi:"47289247".to_string(),
+                schemes: None,
+                title:"FooBar".to_string(),
+                wi:None,
+            }),
             recommendations : Some(Recommendations {
                 ddc : RecommendationDataHolder {
                     recommendations: vec![
@@ -201,13 +215,13 @@ mod tests {
                            editions: "66".to_string(),
                            format: "Book".to_string(),
                            holdings: "1278".to_string(),
-                           hyr:"2020".to_string(),
+                           hyr:Some("2020".to_string()),
                            itemtype: "itemtype-book".to_string(),
-                           lyr:"1996".to_string(),
+                           lyr:Some("1996".to_string()),
                            owi:"570898".to_string(),
-                           schemes:"DDC LCC".to_string(),
+                           schemes:Some("DDC LCC".to_string()),
                            title:"Così fan tutti : an Aurelio Zen mystery".to_string(),
-                           wi:"570898".to_string(),
+                           wi:Some("570898".to_string()),
                        },
                 ],
             }),
