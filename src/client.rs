@@ -1,4 +1,4 @@
-use crate::models::*;
+use crate::api_models::*;
 use anyhow::Result;
 use log::info;
 use reqwest::{Client, ClientBuilder};
