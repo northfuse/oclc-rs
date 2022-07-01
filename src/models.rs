@@ -40,7 +40,37 @@ pub struct Classify {
     pub response: Response,
     #[serde(rename = "workCount")]
     pub work_count: Option<i64>,
+    pub work : Option<Work>,
     pub works: Option<Works>,
+    pub recommendations : Option<Recommendations>
+}
+
+#[derive(Debug, Deserialize, PartialEq, Hash, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum RecommendationData {
+    MostPopular(RecommendationStat),
+    MostRecent(RecommendationStat),
+    LatestEdition(RecommendationStat),
+}
+
+#[derive(Debug, Deserialize, PartialEq, Default)]
+pub struct RecommendationDataHolder {
+    #[serde(rename = "$value")]
+    recommendations : Vec<RecommendationData>,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Default)]
+pub struct Recommendations {
+    ddc : RecommendationDataHolder,
+    lcc : RecommendationDataHolder,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Default, Hash, Eq)]
+pub struct RecommendationStat {
+    holdings : String,
+    nsfa : Option<String>,
+    sfa : Option<String>,
+    sf2 : Option<String>,
 }
 
 #[cfg(test)]
@@ -60,6 +90,78 @@ mod tests {
             response: Response {
                 code: 101,
             },
+            ..Classify::default()
+        });
+    }
+
+    #[test]
+    fn found_code_0() {
+        let result = r#"
+<classify xmlns="http://classify.oclc.org">
+  <response code="0"/>
+  <!--Classify is a product of OCLC Online Computer Library Center: http://classify.oclc.org-->
+  <orderBy>thold desc</orderBy>
+  <input type="isbn">bar</input>
+  <recommendations>
+    <ddc>
+      <mostPopular holdings="2260" nsfa="306.20973" sfa="306.20973"/>
+      <mostRecent holdings="2" sfa="304.60973"/>
+      <latestEdition holdings="2257" sf2="23" sfa="306.20973"/>
+    </ddc>
+    <lcc>
+      <mostPopular holdings="2342" nsfa="JC599.U5" sfa="JC599.U5"/>
+      <mostRecent holdings="2342" sfa="JC599.U5"/>
+    </lcc>
+  </recommendations>
+</classify>
+        "#;
+        let classify : Classify = from_str(result).unwrap();
+        assert_eq!(classify, Classify {
+            response: Response {
+                code: 0,
+            },
+            input : Input {
+                input_type: "isbn".to_string(),
+                value: "bar".to_string(),
+            },
+            recommendations : Some(Recommendations {
+                ddc : RecommendationDataHolder {
+                    recommendations: vec![
+                        RecommendationData::MostPopular(RecommendationStat {
+                            holdings: "2260".to_string(),
+                            nsfa: Some("306.20973".to_string()),
+                            sfa: Some("306.20973".to_string()),
+                            ..RecommendationStat::default()
+                        }),
+                        RecommendationData::MostRecent(RecommendationStat {
+                            holdings: "2".to_string(),
+                            sfa: Some("304.60973".to_string()),
+                            ..RecommendationStat::default()
+                        }),
+                        RecommendationData::LatestEdition(RecommendationStat {
+                            holdings: "2257".to_string(),
+                            sf2: Some("23".to_string()),
+                            sfa: Some("306.20973".to_string()),
+                            ..RecommendationStat::default()
+                        }),
+                    ],
+                },
+                lcc : RecommendationDataHolder {
+                    recommendations: vec![
+                        RecommendationData::MostPopular(RecommendationStat {
+                            holdings: "2342".to_string(),
+                            nsfa: Some("JC599.U5".to_string()),
+                            sfa: Some("JC599.U5".to_string()),
+                            ..RecommendationStat::default()
+                        }),
+                        RecommendationData::MostRecent(RecommendationStat {
+                            holdings: "2342".to_string(),
+                            sfa: Some("JC599.U5".to_string()),
+                            ..RecommendationStat::default()
+                        }),
+                    ],
+                },
+            }),
             ..Classify::default()
         });
     }
@@ -109,6 +211,7 @@ mod tests {
                        },
                 ],
             }),
+            ..Classify::default()
         });
     }
 }
