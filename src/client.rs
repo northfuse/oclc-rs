@@ -20,10 +20,10 @@ impl OclcClient {
         OclcClient { client }
     }
 
-    pub async fn lookup(&self, isbn: String) -> Result<Option<Works>> {
+    pub async fn lookup(&self, stdnbr: String) -> Result<Option<Works>> {
         let uri = format!(
-            "http://classify.oclc.org/classify2/Classify?isbn={}&summary=true",
-            isbn
+            "http://classify.oclc.org/classify2/Classify?stdnbr={}&summary=true",
+            stdnbr
         );
         info!("looking up {}", uri);
         let response = self.client.get(uri).send().await?.text().await?;
