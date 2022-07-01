@@ -1,5 +1,5 @@
 use crate::api_models::*;
-use anyhow::Result;
+use crate::models::{ClassifyResult, Result};
 use log::info;
 use reqwest::{Client, ClientBuilder};
 use serde_xml_rs::from_str;
@@ -20,7 +20,7 @@ impl OclcClient {
         OclcClient { client }
     }
 
-    pub async fn lookup(&self, stdnbr: String) -> Result<Option<Works>> {
+    pub async fn lookup(&self, stdnbr: String) -> Result<Option<ClassifyResult>> {
         let uri = format!(
             "http://classify.oclc.org/classify2/Classify?stdnbr={}&summary=true",
             stdnbr
@@ -30,17 +30,14 @@ impl OclcClient {
         info!("got: {}", response);
         let classify: Classify = from_str(&response.to_string())?;
         info!("got classify: {:?}", classify);
-        if classify.response.code == 101 {
-            Ok(None)
-        } else {
-            Ok(classify.works)
-        }
+        classify.into()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use anyhow::anyhow;
 
     #[tokio::test]
     async fn not_found() -> Result<()> {
@@ -51,11 +48,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn found() -> Result<()> {
+    async fn found() -> anyhow::Result<()> {
         let client = OclcClient::new()?;
         let result = client.lookup("0679442723".to_string()).await?;
         assert_eq!(result.is_some(), true);
-        let mut works = result.unwrap().works;
+        let mut works = match result {
+            Some(ClassifyResult::MultiWork(multi_work)) => multi_work.works,
+            _ => return Err(anyhow!("not a multi work")),
+        };
         works.sort();
         let mut expected = vec![
             Work {

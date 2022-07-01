@@ -56,21 +56,21 @@ pub enum RecommendationData {
 #[derive(Debug, Deserialize, PartialEq, Default)]
 pub struct RecommendationDataHolder {
     #[serde(rename = "$value")]
-    recommendations: Vec<RecommendationData>,
+    pub recommendations: Vec<RecommendationData>,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Default)]
 pub struct Recommendations {
-    ddc: RecommendationDataHolder,
-    lcc: RecommendationDataHolder,
+    pub ddc: RecommendationDataHolder,
+    pub lcc: RecommendationDataHolder,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Default, Hash, Eq)]
 pub struct RecommendationStat {
     holdings: String,
-    nsfa: Option<String>,
-    sfa: Option<String>,
-    sf2: Option<String>,
+    pub nsfa: Option<String>,
+    pub sfa: Option<String>,
+    pub sf2: Option<String>,
 }
 
 #[cfg(test)]
