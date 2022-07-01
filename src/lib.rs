@@ -1,5 +1,5 @@
-mod models;
 mod client;
+mod models;
 
-pub use models::*;
 pub use client::OclcClient;
+pub use models::*;

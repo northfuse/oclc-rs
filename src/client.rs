@@ -1,11 +1,11 @@
+use crate::models::*;
 use anyhow::Result;
-use serde_xml_rs::from_str;
 use log::info;
 use reqwest::{Client, ClientBuilder};
-use crate::models::*;
+use serde_xml_rs::from_str;
 
 pub struct OclcClient {
-    client : Client,
+    client: Client,
 }
 
 impl OclcClient {
@@ -13,23 +13,22 @@ impl OclcClient {
         info!("building client");
         let client = ClientBuilder::new().build()?;
         info!("built client");
-        Ok(OclcClient {
-            client,
-        })
+        Ok(OclcClient { client })
     }
 
-    pub fn new_with_client(client : Client) -> Self {
-        OclcClient {
-            client,
-        }
+    pub fn new_with_client(client: Client) -> Self {
+        OclcClient { client }
     }
 
-    pub async fn lookup(&self, isbn : String) -> Result<Option<Works>> {
-        let uri = format!("http://classify.oclc.org/classify2/Classify?isbn={}&summary=true", isbn);
+    pub async fn lookup(&self, isbn: String) -> Result<Option<Works>> {
+        let uri = format!(
+            "http://classify.oclc.org/classify2/Classify?isbn={}&summary=true",
+            isbn
+        );
         info!("looking up {}", uri);
         let response = self.client.get(uri).send().await?.text().await?;
         info!("got: {}", response);
-        let classify : Classify = from_str(&response.to_string())?;
+        let classify: Classify = from_str(&response.to_string())?;
         info!("got classify: {:?}", classify);
         if classify.response.code == 101 {
             Ok(None)
@@ -58,19 +57,19 @@ mod tests {
         assert_eq!(result.is_some(), true);
         let mut works = result.unwrap().works;
         works.sort();
-        let mut expected = vec! [
+        let mut expected = vec![
             Work {
-                author:"Dibdin, Michael".to_string(),
-                editions:"66".to_string(),
-                format:"Book".to_string(),
-                holdings:"1278".to_string(),
-                hyr:Some("2020".to_string()),
-                itemtype:"itemtype-book".to_string(),
-                lyr:Some("1996".to_string()),
-                owi:"570898".to_string(),
-                schemes:Some("DDC LCC".to_string()),
-                title:"Così fan tutti : an Aurelio Zen mystery".to_string(),
-                wi:Some("570898".to_string()),
+                author: "Dibdin, Michael".to_string(),
+                editions: "66".to_string(),
+                format: "Book".to_string(),
+                holdings: "1278".to_string(),
+                hyr: Some("2020".to_string()),
+                itemtype: "itemtype-book".to_string(),
+                lyr: Some("1996".to_string()),
+                owi: "570898".to_string(),
+                schemes: Some("DDC LCC".to_string()),
+                title: "Così fan tutti : an Aurelio Zen mystery".to_string(),
+                wi: Some("570898".to_string()),
             },
             Work {
                 author: "Dibdin, Michael".to_string(),
