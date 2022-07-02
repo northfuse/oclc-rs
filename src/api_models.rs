@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Deserialize, PartialEq, Default)]
 pub struct Input {
@@ -14,7 +14,7 @@ pub struct Works {
     pub works: Vec<Work>,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Default, Eq, PartialOrd, Ord)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Default, Eq, PartialOrd, Ord)]
 pub struct Work {
     pub author: String,
     pub editions: String,

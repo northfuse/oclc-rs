@@ -1,5 +1,6 @@
 use crate::api_models::*;
 use thiserror::Error;
+use serde::{Serialize, Deserialize};
 
 pub type Result<A> = std::result::Result<A, ClassifyError>;
 
@@ -26,26 +27,26 @@ pub enum ClassifyError {
     IoError(#[from] reqwest::Error),
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ClassificationRecommendation {
     most_popular: Vec<String>,
     most_recent: Vec<String>,
     latest_edition: Vec<String>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Recommendations {
     pub dewie_decimal: ClassificationRecommendation,
     pub library_of_congress: ClassificationRecommendation,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct SingleWorkSummary {
     pub work: Work,
     pub recommendations: Recommendations,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct MultiWork {
     pub works: Vec<Work>,
 }
