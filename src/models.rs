@@ -1,6 +1,6 @@
 use crate::api_models::*;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use serde::{Serialize, Deserialize};
 
 pub type Result<A> = std::result::Result<A, ClassifyError>;
 
