@@ -20,9 +20,9 @@ pub enum ClassifyError {
     UnexpectedError,
     #[error("Unexpected response code.")]
     UnexpectedResponseCode,
-    #[error("Parsing Error")]
+    #[error("Parsing Error: {0}")]
     XmlParsingError(#[from] serde_xml_rs::Error),
-    #[error("Network Error")]
+    #[error("Network Error: {0}")]
     IoError(#[from] reqwest::Error),
 }
 
